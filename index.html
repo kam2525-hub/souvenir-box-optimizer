@@ -1,0 +1,893 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>お土産・プチギフト「過不足ゼロ」スマート箱買い組み合わせ計算機</title>
+    <style>
+        /* モダン和風・北欧テイストのカラーパレット */
+        :root {
+            --primary: #d9534f; /* 茜色（温かみのある赤） */
+            --primary-hover: #c93d39;
+            --primary-light: #fdf2f2;
+            --secondary: #e0a96d; /* 杏色（上品なゴールド・オレンジ） */
+            --accent: #2c7a7b; /* 深緑（クリーンなアクセント） */
+            --bg-main: #f7f5f0; /* 鳥の子色（温かみのあるオフホワイト） */
+            --bg-card: #ffffff;
+            --text-main: #2d3748;
+            --text-muted: #718096;
+            --border: #e2e8f0;
+            --radius: 16px;
+            --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans JP", sans-serif;
+            background-color: var(--bg-main);
+            color: var(--text-main);
+            line-height: 1.6;
+            padding: 20px 12px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        /* ヘッダー */
+        header {
+            text-align: center;
+            margin-bottom: 24px;
+            padding: 10px 0;
+        }
+
+        .logo-area {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--bg-card);
+            padding: 16px;
+            border-radius: 50%;
+            box-shadow: var(--shadow);
+            margin-bottom: 16px;
+        }
+
+        .logo-area svg {
+            width: 48px;
+            height: 48px;
+            fill: var(--primary);
+        }
+
+        h1 {
+            font-size: 1.6rem;
+            color: var(--text-main);
+            margin-bottom: 8px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+        }
+
+        .subtitle {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* メインレイアウト */
+        .layout {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 24px;
+        }
+
+        @media (min-width: 768px) {
+            .layout {
+                grid-template-columns: 1fr 1.1fr;
+            }
+        }
+
+        /* カードデザイン */
+        .card {
+            background-color: var(--bg-card);
+            border-radius: var(--radius);
+            padding: 24px;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
+        }
+
+        .card-title {
+            font-size: 1.15rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border-bottom: 2px solid var(--bg-main);
+            padding-bottom: 12px;
+        }
+
+        .card-title svg {
+            width: 20px;
+            height: 20px;
+            fill: var(--primary);
+        }
+
+        /* フォーム要素 */
+        .form-group {
+            margin-bottom: 24px;
+        }
+
+        label {
+            display: block;
+            font-weight: 700;
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+        }
+
+        .input-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .input-wrapper input {
+            width: 100%;
+            padding: 12px 16px;
+            font-size: 1.25rem;
+            font-weight: 700;
+            border: 2px solid var(--border);
+            border-radius: 10px;
+            outline: none;
+            transition: border-color 0.2s;
+            color: var(--text-main);
+        }
+
+        .input-wrapper input:focus {
+            border-color: var(--primary);
+        }
+
+        .input-unit {
+            position: absolute;
+            right: 16px;
+            color: var(--text-muted);
+            font-weight: 700;
+            font-size: 1rem;
+        }
+
+        /* 箱リスト */
+        .box-list-header {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr auto;
+            gap: 8px;
+            padding: 0 10px 6px 10px;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            font-weight: 700;
+        }
+
+        .box-row {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr auto;
+            gap: 8px;
+            align-items: center;
+            margin-bottom: 8px;
+            background: var(--bg-main);
+            padding: 8px 10px;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            animation: fadeIn 0.25s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .box-row input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-main);
+        }
+
+        .box-row input:focus {
+            border-color: var(--primary);
+            outline: none;
+        }
+
+        .btn-delete {
+            background: none;
+            border: none;
+            color: #e53e3e;
+            cursor: pointer;
+            padding: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: background 0.2s;
+        }
+
+        .btn-delete:hover {
+            background: rgba(229, 62, 62, 0.1);
+        }
+
+        .btn-delete svg {
+            width: 16px;
+            height: 16px;
+            fill: currentColor;
+        }
+
+        .btn-add {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: none;
+            border: 2px dashed var(--primary);
+            color: var(--primary);
+            padding: 10px 16px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 0.85rem;
+            width: 100%;
+            justify-content: center;
+            transition: all 0.2s;
+            margin-top: 8px;
+        }
+
+        .btn-add:hover {
+            background: rgba(217, 83, 79, 0.05);
+            border-color: var(--primary-hover);
+            color: var(--primary-hover);
+        }
+
+        /* 計算結果 */
+        .results-wrapper {
+            display: none;
+        }
+
+        .results-container {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .plan-card {
+            border-left: 6px solid var(--primary);
+            padding: 16px;
+            background: var(--bg-main);
+            border-radius: 4px var(--radius) var(--radius) 4px;
+            position: relative;
+            overflow: hidden;
+            border: 1px solid var(--border);
+            border-left-width: 6px;
+        }
+
+        .plan-card.best-cost { border-left-color: var(--accent); }
+        .plan-card.best-waste { border-left-color: var(--primary); }
+        .plan-card.best-value { border-left-color: var(--secondary); }
+
+        .badge {
+            position: absolute;
+            top: 14px;
+            right: 14px;
+            font-size: 0.7rem;
+            font-weight: 800;
+            padding: 4px 10px;
+            border-radius: 20px;
+            color: #fff;
+            letter-spacing: 0.5px;
+        }
+
+        .badge.best-cost { background-color: var(--accent); }
+        .badge.best-waste { background-color: var(--primary); }
+        .badge.best-value { background-color: var(--secondary); color: #fff; }
+
+        .plan-title {
+            font-size: 1.05rem;
+            font-weight: 800;
+            margin-bottom: 12px;
+            padding-right: 120px;
+        }
+
+        .plan-summary {
+            display: grid;
+            grid-template-columns: 1.2fr 1fr 1fr;
+            gap: 8px;
+            background: var(--bg-card);
+            padding: 12px;
+            border-radius: 10px;
+            margin-bottom: 12px;
+            border: 1px solid var(--border);
+        }
+
+        .summary-item {
+            text-align: center;
+        }
+
+        .summary-label {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            display: block;
+            margin-bottom: 2px;
+        }
+
+        .summary-val {
+            font-size: 1.1rem;
+            font-weight: 800;
+            color: var(--text-main);
+        }
+
+        .summary-val.highlight {
+            color: var(--primary);
+        }
+        .plan-card.best-cost .summary-val.highlight {
+            color: var(--accent);
+        }
+
+        .plan-details {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            border-top: 1px dashed var(--border);
+            padding-top: 10px;
+        }
+
+        .plan-details ul {
+            list-style: none;
+        }
+
+        .plan-details li {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 4px;
+        }
+
+        .plan-details li span.qty {
+            font-weight: 700;
+            color: var(--text-main);
+        }
+
+        /* 全パターンリスト */
+        .all-patterns-title {
+            font-size: 0.95rem;
+            font-weight: 700;
+            margin-top: 10px;
+            margin-bottom: 10px;
+            color: var(--text-main);
+        }
+
+        .all-patterns-scroll {
+            max-height: 220px;
+            overflow-y: auto;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            background: var(--bg-card);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.8rem;
+        }
+
+        th, td {
+            padding: 10px 12px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+
+        th {
+            background-color: var(--bg-main);
+            font-weight: 700;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            color: var(--text-muted);
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        /* エラー表示 */
+        .error-message {
+            background-color: #fff5f5;
+            border: 1px solid #fed7d7;
+            color: #c53030;
+            padding: 12px 16px;
+            border-radius: 10px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-top: 16px;
+            display: none;
+        }
+
+        /* フッター */
+        footer {
+            text-align: center;
+            margin-top: 40px;
+            padding: 24px 0;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            border-top: 1px solid var(--border);
+        }
+
+        /* スマホ用調整 */
+        @media (max-width: 480px) {
+            .box-list-header {
+                display: none;
+            }
+            .box-row {
+                grid-template-columns: 1fr;
+                gap: 6px;
+                position: relative;
+                padding-right: 40px;
+            }
+            .box-row input {
+                font-size: 0.9rem;
+            }
+            .box-row input::placeholder {
+                color: #cbd5e0;
+            }
+            .box-row .btn-delete {
+                position: absolute;
+                right: 8px;
+                top: 50%;
+                transform: translateY(-50%);
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <div class="logo-area">
+            <!-- 和風ギフトボックス風SVG -->
+            <svg viewBox="0 0 24 24">
+                <path d="M12 2C11.5 2 10 3.5 10 5c0 1.5 1.5 2.5 2 2.5s2-1 2-2.5c0-1.5-1.5-3-2-3zm-3 5.5c-.8 0-1.8-.4-2.5-1.1C5.2 5.1 5 3.5 6.5 3.5c1.5 0 2.5 1.5 2.5 2.5 0 .8-.4 1.5-1 1.5zm6 0c-.6 0-1-.7-1-1.5 0-1 1-2.5 2.5-2.5 1.5 0 1.3 1.6.1 2.9-.7.7-1.7 1.1-2.5 1.1zM20 9H4c-1.1 0-2 .9-2 2v2c0 .5.3.9.8 1.1-.3.3-.8.8-.8 1.4v4c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2v-4c0-.6-.5-1.1-.8-1.4.5-.2.8-.6.8-1.1v-2c0-1.1-.9-2-2-2zm-9 11H4v-4h7v4zm0-6H4v-2h7v2zm9 6h-7v-4h7v4zm0-6h-7v-2h7v2z"/>
+            </svg>
+        </div>
+        <h1>過不足ゼロ「スマート箱買い」計算機</h1>
+        <p class="subtitle">配る人数とお店の箱サイズを入力するだけで、予算を抑えつつ全員に行き渡る最適な組み合わせを瞬時に計算します。</p>
+    </header>
+
+    <div class="layout">
+        <!-- 入力エリア -->
+        <div class="card">
+            <div class="card-title">
+                <svg viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
+                お土産・ギフトの設定
+            </div>
+
+            <!-- 配る人数 -->
+            <div class="form-group">
+                <label for="target-count">配る対象の人数</label>
+                <div class="input-wrapper">
+                    <input type="number" id="target-count" min="1" placeholder="例: 25">
+                    <span class="input-unit">人</span>
+                </div>
+            </div>
+
+            <!-- 箱サイズバリエーション -->
+            <div class="form-group" style="margin-bottom: 10px;">
+                <label>店頭の箱バリエーション</label>
+                <div class="box-list-header">
+                    <div>箱のラベル/名前</div>
+                    <div>入り数(個)</div>
+                    <div>価格(円)</div>
+                    <div style="width: 28px;"></div>
+                </div>
+                <div id="box-list">
+                    <!-- JSで動的に生成 -->
+                </div>
+                <button type="button" class="btn-add" onclick="addBoxRow()">
+                    <svg style="width: 16px; height: 16px; fill: currentColor;" viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+                    箱のサイズを追加する
+                </button>
+            </div>
+
+            <div id="error-message" class="error-message"></div>
+        </div>
+
+        <!-- 結果表示エリア -->
+        <div class="results-wrapper" id="results-wrapper">
+            <div class="results-container">
+                <!-- おすすめプラン -->
+                <div class="plan-card best-value" id="plan-best-value"></div>
+
+                <!-- 最安値プラン -->
+                <div class="plan-card best-cost" id="plan-best-cost"></div>
+
+                <!-- 余り最小プラン -->
+                <div class="plan-card best-waste" id="plan-best-waste"></div>
+
+                <!-- すべての組み合わせ -->
+                <div>
+                    <div class="all-patterns-title">条件を満たす買い方一覧（総額が安い順）</div>
+                    <div class="all-patterns-scroll">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>総額</th>
+                                    <th>合計個数</th>
+                                    <th>余り</th>
+                                    <th>買い方の内訳</th>
+                                </tr>
+                            </thead>
+                            <tbody id="all-patterns-body">
+                                <!-- JSで生成 -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        &copy; スマート箱買い組み合わせ計算機 - 無駄のないスマートなギフト選びを。
+    </footer>
+</div>
+
+<script>
+    // デフォルト値
+    const defaultState = {
+        targetCount: 25,
+        boxes: [
+            { id: 1, name: "小箱", count: 8, price: 1200 },
+            { id: 2, name: "中箱", count: 12, price: 1600 },
+            { id: 3, name: "大箱", count: 18, price: 2200 }
+        ]
+    };
+
+    let nextId = 4;
+
+    // 起動時の初期化
+    window.addEventListener('DOMContentLoaded', () => {
+        loadState();
+        document.getElementById('target-count').addEventListener('input', calculate);
+    });
+
+    // 状態をローカルストレージから読み込み
+    function loadState() {
+        const saved = localStorage.getItem('smart_souvenir_calculator_state');
+        let state = defaultState;
+        if (saved) {
+            try {
+                state = JSON.parse(saved);
+            } catch (e) {
+                state = defaultState;
+            }
+        }
+
+        document.getElementById('target-count').value = state.targetCount;
+
+        const boxList = document.getElementById('box-list');
+        boxList.innerHTML = '';
+        
+        // IDの競合を防ぐ
+        const maxId = state.boxes.reduce((max, b) => b.id > max ? b.id : max, 0);
+        nextId = maxId + 1;
+
+        state.boxes.forEach(box => {
+            addBoxRow(box, false);
+        });
+
+        calculate();
+    }
+
+    // 状態をローカルストレージに保存
+    function saveState() {
+        const targetCount = parseInt(document.getElementById('target-count').value) || 0;
+        const boxes = [];
+        document.querySelectorAll('.box-row').forEach(row => {
+            boxes.push({
+                id: parseInt(row.dataset.id),
+                name: row.querySelector('.box-name').value,
+                count: parseInt(row.querySelector('.box-count').value) || 0,
+                price: parseInt(row.querySelector('.box-price').value) || 0
+            });
+        });
+
+        const state = { targetCount, boxes };
+        localStorage.setItem('smart_souvenir_calculator_state', JSON.stringify(state));
+    }
+
+    // 箱入力行の追加
+    function addBoxRow(boxData = null, runCalc = true) {
+        const boxList = document.getElementById('box-list');
+
+        const id = boxData ? boxData.id : nextId++;
+        const name = boxData ? boxData.name : `サイズ ${String.fromCharCode(65 + boxList.children.length)}`;
+        const count = boxData ? boxData.count : '';
+        const price = boxData ? boxData.price : '';
+
+        const row = document.createElement('div');
+        row.className = 'box-row';
+        row.dataset.id = id;
+        row.innerHTML = `
+            <input type="text" class="box-name" value="${name}" placeholder="例: 中箱" oninput="onInputUpdate()">
+            <input type="number" class="box-count" value="${count}" min="1" placeholder="個数" oninput="onInputUpdate()">
+            <input type="number" class="box-price" value="${price}" min="0" placeholder="価格" oninput="onInputUpdate()">
+            <button class="btn-delete" onclick="deleteBox(this)" title="削除">
+                <svg viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
+            </button>
+        `;
+        boxList.appendChild(row);
+
+        if (runCalc) {
+            calculate();
+        }
+    }
+
+    // 箱入力行の削除
+    function deleteBox(button) {
+        const row = button.closest('.box-row');
+        row.remove();
+        calculate();
+    }
+
+    // 入力更新時のハンドラ
+    function onInputUpdate() {
+        calculate();
+    }
+
+    // エラーメッセージの表示
+    function showError(msg) {
+        const errorDiv = document.getElementById('error-message');
+        errorDiv.innerText = msg;
+        errorDiv.style.display = 'block';
+    }
+
+    // 計算メインロジック
+    function calculate() {
+        const targetInput = document.getElementById('target-count');
+        const target = parseInt(targetInput.value) || 0;
+        const errorDiv = document.getElementById('error-message');
+        const resultsWrapper = document.getElementById('results-wrapper');
+        const allPatternsBody = document.getElementById('all-patterns-body');
+
+        errorDiv.style.display = 'none';
+        errorDiv.innerText = '';
+
+        if (target <= 0) {
+            resultsWrapper.style.display = 'none';
+            saveState();
+            return;
+        }
+
+        // 箱データの収集とバリデーション
+        const boxRows = document.querySelectorAll('.box-row');
+        const boxes = [];
+        let hasInvalidInput = false;
+
+        boxRows.forEach(row => {
+            const id = parseInt(row.dataset.id);
+            const name = row.querySelector('.box-name').value.trim() || '名称未設定';
+            const count = parseInt(row.querySelector('.box-count').value) || 0;
+            const price = parseInt(row.querySelector('.box-price').value) || 0;
+
+            if (count <= 0) {
+                hasInvalidInput = true;
+                row.querySelector('.box-count').style.borderColor = '#fc8181';
+            } else {
+                row.querySelector('.box-count').style.borderColor = '';
+            }
+
+            if (price < 0) {
+                hasInvalidInput = true;
+                row.querySelector('.box-price').style.borderColor = '#fc8181';
+            } else {
+                row.querySelector('.box-price').style.borderColor = '';
+            }
+
+            boxes.push({ id, name, count, price });
+        });
+
+        if (hasInvalidInput) {
+            showError("箱の「入り数（1以上）」と「価格（0以上）」を正しく入力してください。");
+            resultsWrapper.style.display = 'none';
+            return;
+        }
+
+        if (boxes.length === 0) {
+            showError("箱のバリエーションを1つ以上追加してください。");
+            resultsWrapper.style.display = 'none';
+            return;
+        }
+
+        // 組み合わせ全探索 (DFS)
+        let results = [];
+        let iterationCount = 0;
+        const maxBoxCount = Math.max(...boxes.map(b => b.count));
+
+        try {
+            function search(index, currentCombination, currentCount, currentCost) {
+                iterationCount++;
+                // 無限ループ・ブラウザフリーズ防止用のセーフティバリア
+                if (iterationCount > 80000) {
+                    throw new Error("組み合わせ数が多すぎます。人数を減らすか、箱の入り数を大きく調整してください。");
+                }
+
+                if (index === boxes.length) {
+                    if (currentCount >= target) {
+                        results.push({
+                            combination: [...currentCombination],
+                            totalCount: currentCount,
+                            totalCost: currentCost,
+                            waste: currentCount - target
+                        });
+                    }
+                    return;
+                }
+
+                const box = boxes[index];
+                const maxQty = Math.ceil(target / box.count);
+
+                for (let qty = 0; qty <= maxQty; qty++) {
+                    const nextCount = currentCount + (box.count * qty);
+                    const nextCost = currentCost + (box.price * qty);
+
+                    // 枝刈り：余りが最大箱サイズ以上になる場合は、これ以上この箱を増やす必要はない
+                    if (nextCount >= target + maxBoxCount) {
+                        currentCombination.push({ box, qty });
+                        results.push({
+                            combination: [...currentCombination],
+                            totalCount: nextCount,
+                            totalCost: nextCost,
+                            waste: nextCount - target
+                        });
+                        currentCombination.pop();
+                        break; // この箱のループを終了して枝刈り
+                    }
+
+                    currentCombination.push({ box, qty });
+                    search(index + 1, currentCombination, nextCount, nextCost);
+                    currentCombination.pop();
+                }
+            }
+
+            search(0, [], 0, 0);
+
+        } catch (e) {
+            showError(e.message);
+            resultsWrapper.style.display = 'none';
+            return;
+        }
+
+        if (results.length === 0) {
+            showError("条件を満たす組み合わせが見つかりませんでした。");
+            resultsWrapper.style.display = 'none';
+            return;
+        }
+
+        // 重複の除去
+        const uniqueResultsMap = new Map();
+        results.forEach(r => {
+            const key = r.combination.map(c => c.qty).join('-');
+            if (!uniqueResultsMap.has(key)) {
+                uniqueResultsMap.set(key, r);
+            }
+        });
+        results = Array.from(uniqueResultsMap.values());
+
+        // ソート：総額の安い順 ＞ 余りが少ない順
+        results.sort((a, b) => {
+            if (a.totalCost !== b.totalCost) {
+                return a.totalCost - b.totalCost;
+            }
+            return a.waste - b.waste;
+        });
+
+        // 優秀なプランの選出
+        // 1. 最安値プラン
+        const bestCost = results[0];
+
+        // 2. 余り最小（ぴったり）プラン
+        let bestWaste = results[0];
+        results.forEach(r => {
+            if (r.waste < bestWaste.waste) {
+                bestWaste = r;
+            } else if (r.waste === bestWaste.waste && r.totalCost < bestWaste.totalCost) {
+                bestWaste = r;
+            }
+        });
+
+        // 3. おすすめバランスプラン（コストを抑えつつ、余りを減らす独自評価スコア）
+        // 評価値 = 総コスト + (余り個数 * 平均単価 * 1.3)
+        const avgUnitPrice = boxes.reduce((sum, b) => sum + (b.price / b.count), 0) / boxes.length;
+        let bestValue = results[0];
+        let minScore = Infinity;
+        results.forEach(r => {
+            const score = r.totalCost + (r.waste * avgUnitPrice * 1.3);
+            if (score < minScore) {
+                minScore = score;
+                bestValue = r;
+            }
+        });
+
+        // UIへの描画
+        renderPlan('plan-best-value', bestValue, 'おすすめ（コスパ・無駄なし）', 'value');
+        renderPlan('plan-best-cost', bestCost, '最安値重視', 'cost');
+        renderPlan('plan-best-waste', bestWaste, '余り最小（ぴったり）', 'waste');
+
+        // すべての組み合わせテーブルの描画
+        allPatternsBody.innerHTML = '';
+        // 上位100件までを表示
+        results.slice(0, 100).forEach(r => {
+            const tr = document.createElement('tr');
+            const detailsStr = r.combination
+                .filter(c => c.qty > 0)
+                .map(c => `${c.box.name} × ${c.qty}`)
+                .join(', ');
+
+            tr.innerHTML = `
+                <td style="font-weight: 800; color: var(--text-main);">￥${r.totalCost.toLocaleString()}</td>
+                <td>${r.totalCount} 個</td>
+                <td style="${r.waste === 0 ? 'color: var(--accent); font-weight: 800;' : ''}">${r.waste === 0 ? 'ぴったり' : r.waste + ' 個余り'}</td>
+                <td style="font-size: 0.75rem; color: var(--text-muted); font-weight: 600;">${detailsStr || 'なし'}</td>
+            `;
+            allPatternsBody.appendChild(tr);
+        });
+
+        resultsWrapper.style.display = 'block';
+        saveState();
+    }
+
+    // プランカードのレンダリング
+    function renderPlan(elementId, plan, label, type) {
+        const container = document.getElementById(elementId);
+        container.className = `plan-card best-${type}`;
+
+        const detailsLi = plan.combination
+            .filter(c => c.qty > 0)
+            .map(c => `
+                <li>
+                    <span>${c.box.name} (${c.box.count}個入)</span>
+                    <span class="qty">${c.qty} 箱</span>
+                </li>
+            `).join('');
+
+        const badgeClass = `best-${type}`;
+
+        container.innerHTML = `
+            <div class="badge ${badgeClass}">${label}</div>
+            <div class="plan-title">${label}プラン</div>
+            <div class="plan-summary">
+                <div class="summary-item">
+                    <span class="summary-label">総額</span>
+                    <span class="summary-val highlight">￥${plan.totalCost.toLocaleString()}</span>
+                </div>
+                <div class="summary-item">
+                    <span class="summary-label">合計個数</span>
+                    <span class="summary-val">${plan.totalCount}個</span>
+                </div>
+                <div class="summary-item">
+                    <span class="summary-label">余り</span>
+                    <span class="summary-val" style="${plan.waste === 0 ? 'color: var(--accent);' : ''}">
+                        ${plan.waste === 0 ? 'なし' : plan.waste + '個'}
+                    </span>
+                </div>
+            </div>
+            <div class="plan-details">
+                <p style="font-weight: 700; margin-bottom: 6px; color: var(--text-main);">買い方内訳：</p>
+                <ul>
+                    ${detailsLi || '<li style="color: var(--text-muted);">購入なし</li>'}
+                </ul>
+            </div>
+        `;
+    }
+</script>
+</body>
+</html>
